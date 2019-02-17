@@ -6,10 +6,10 @@
     "skipLibCheck": true,
 
     // Modules
-    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "module": "es2015",
-    "target": "es5",
+    "target": "esnext",
 
     // Libs
     "lib": ["dom", "esnext"],

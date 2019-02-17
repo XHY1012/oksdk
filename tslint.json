@@ -1,0 +1,48 @@
+{
+  "extends": [
+    "tslint:recommended",
+    "tslint-consistent-codestyle",
+    "tslint-eslint-rules",
+    "tslint-config-airbnb",
+    "tslint-plugin-prettier",
+    "tslint-config-prettier",
+    "tslint-immutable"
+  ],
+
+  "rules": {
+    // Basic
+    "prettier": [true, ".prettierrc"],
+    "align": false,
+    "import-name": false,
+    "variable-name": false,
+    "max-line-length": [true, 150],
+    "object-literal-sort-keys": false,
+    "member-ordering": false,
+    "no-this-assignment": [true, {"allowed-names": ["^self$"], "allow-destructuring": true}],
+    "no-boolean-literal-compare": true,
+    "no-var-keyword": true,
+    "no-parameter-reassignment": true,
+    "typedef": [true, "call-signature"],
+    "ordered-imports": false,
+    "function-name": false,
+
+    // Immutable
+    // "readonly-keyword": true,
+    "readonly-array": true,
+    "no-let": true,
+    // "no-object-mutation": true,
+    "no-delete": true,
+    "no-method-signature": true,
+
+    // Functional
+    "no-this": true,
+    "no-class": true,
+    "no-mixed-interface": true,
+    "no-expression-statement": true,
+    "no-if-statement": true,
+
+    // Legacy
+    "no-namespace": false,
+    "no-reference": false
+  }
+}

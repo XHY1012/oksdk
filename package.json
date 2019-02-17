@@ -11,12 +11,23 @@
     "ok",
     "sdk",
     "oauth",
-    "odnoklassniki"
+    "odnoklassniki",
+    "typescript"
   ],
   "author": "ok.ru",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/odnoklassniki/ok-js-sdk/issues"
   },
-  "homepage": "https://github.com/odnoklassniki/ok-js-sdk#readme"
+  "homepage": "https://github.com/odnoklassniki/ok-js-sdk#readme",
+  "devDependencies": {
+    "rollup": "^1.2.1",
+    "tslint": "^5.12.1",
+    "tslint-config-airbnb": "^5.11.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-consistent-codestyle": "^1.15.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "tslint-immutable": "^5.2.0",
+    "tslint-plugin-prettier": "^2.0.1"
+  }
 }

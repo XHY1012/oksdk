@@ -1,6 +1,6 @@
 {
   "name": "oksdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Javascript SDK for OK.ru",
   "main": "dist/oksdk.es.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "jest": "^24.1.0",
     "prettier": "^1.16.4",
     "rollup": "^1.2.1",
+    "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-typescript2": "^0.19.2",
     "tslint": "^5.12.1",
     "tslint-config-airbnb": "^5.11.1",

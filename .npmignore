@@ -1,0 +1,18 @@
+# Basic
+
+node_modules
+samples
+src
+oksdk.js
+
+# Cache
+
+.rpt2_cache
+
+# Configs
+
+package-lock.json
+rollup.config.js
+tsconfig.json
+tslint.json
+.editorconfig

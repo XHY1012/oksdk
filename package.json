@@ -1,8 +1,8 @@
 {
   "name": "oksdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Javascript SDK for OK.ru",
-  "main": "oksdk.es.js",
+  "main": "dist/oksdk.es.js",
   "scripts": {
     "start": "rollup -c -w",
     "build": "rollup -c"

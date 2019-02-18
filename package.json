@@ -1,6 +1,6 @@
 {
-  "name": "ok-js-sdk",
-  "version": "0.0.1",
+  "name": "oksdk",
+  "version": "0.0.2",
   "description": "Javascript SDK for OK.ru",
   "main": "oksdk.es.js",
   "scripts": {

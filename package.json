@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/odnoklassniki/ok-js-sdk.git"
+    "url": "git+https://github.com/etroynov/oksdk.git"
   },
   "keywords": [
     "ok",
@@ -21,9 +21,9 @@
   "author": "ok.ru",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/odnoklassniki/ok-js-sdk/issues"
+    "url": "https://github.com/etroynov/oksdk/issues"
   },
-  "homepage": "https://github.com/odnoklassniki/ok-js-sdk#readme",
+  "homepage": "https://github.com/etroynov/oksdk#readme",
   "devDependencies": {
     "jest": "^24.1.0",
     "prettier": "^1.16.4",

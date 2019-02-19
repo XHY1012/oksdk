@@ -1,77 +1,49 @@
-/**
- * Config
- */
+const OK_CONNECT_URL = 'https://connect.ok.ru/';
+const OK_MOB_URL = 'https://m.ok.ru/';
+const OK_API_SERVER = 'https://api.ok.ru/';
 
-import {
-  OK_MOB_URL,
-  OK_API_SERVER,
-  OK_CONNECT_URL,
-  OK_ANDROID_APP_UA
-} from "./config/servers";
-
-declare const OKSDK: any;
-
-/**
- * Utils
- */
-
-import { isFunc, isString, toString } from "./utils/index";
-
-/**
- * Libs
- */
-
-import { md5 } from "./lib/Util/index";
-
-/**
- * Helpers
- */
-
-/** stub func */
-const nop = (str?: string) => {};
-
-/**
- * Expo
- */
+const OK_ANDROID_APP_UA = 'OkApp';
 
 const state = {
   app_id: 0,
-  app_key: "",
-  sessionKey: "",
-  accessToken: "",
-  sessionSecretKey: "",
-  apiServer: "",
-  widgetServer: "",
-  mobServer: "",
-  baseUrl: "",
+  app_key: '',
+  sessionKey: '',
+  accessToken: '',
+  sessionSecretKey: '',
+  apiServer: '',
+  widgetServer: '',
+  mobServer: '',
+  baseUrl: '',
   container: false,
-  header_widget: ""
+  header_widget: ''
 };
 
-let ads_state: any = {
+const ads_state: {
+  init: boolean;
+  ready: boolean;
+  frame_element?: any;
+  window_frame?: any;
+} = {
   init: false,
   ready: false
 };
 
 const ads_widget_style: any = {
   border: 0,
-  position: "fixed",
+  position: 'fixed',
   top: 0,
   right: 0,
   bottom: 0,
   left: 0,
-  width: "100%",
-  height: "100%",
+  width: '100%',
+  height: '100%',
   zIndex: 1000,
-  display: "none"
+  display: 'none'
 };
 
-let sdk_success = nop;
-let sdk_failure = nop;
-
-// ---------------------------------------------------------------------------------------------------
-// General
-// ---------------------------------------------------------------------------------------------------
+/**
+ * General
+ */
 
 /**
  * initializes the SDK<br/>
@@ -88,80 +60,104 @@ let sdk_failure = nop;
  * @param {Function} success success callback
  * @param {Function} failure failure callback
  */
-export const init = (args: any, success: () => void, failure: () => void) => {
-  args.oauth = args.oauth || {};
-  sdk_success = isFunc(success) ? success : nop;
-  sdk_failure = isFunc(failure) ? failure : nop;
 
-  const params = getRequestParameters(
-    args.location_search || window.location.search
-  );
-  const hParams = getRequestParameters(
-    args.location_hash || window.location.hash
-  );
+type initArgs = {
+  app_id: number;
+  app_key: string;
+  api_server: string;
+  widget_server: string;
+  mob_server: string;
+  oauth: any;
+  location_search: string;
+  location_hash: string;
+}
+
+type initRequestParams = {
+  widget_server: string;
+  api_server: string;
+  mob_server: string;
+  session_key: string;
+  application_key: string;
+  access_token: string;
+  session_secret_key: string;
+}
+
+const init = (args: initArgs, success: Function, failure: Function) => {
+  args.oauth = args.oauth || {};
+  const sdk_success = isFunc(success) ? success : nop;
+  const sdk_failure = isFunc(failure) ? failure : nop;
+
+  const params: any = getRequestParameters(
+    args['location_search'] || window.location.search
+  ) as initRequestParams;
+  const hParams: any = getRequestParameters(
+    args['location_hash'] || window.location.hash
+  ) as initRequestParams;
 
   state.app_id = args.app_id;
-  state.app_key = params.application_key || args.app_key;
-  state.sessionKey = params.session_key;
-  state.accessToken = hParams.access_token;
+  state.app_key = params['application_key'] || args.app_key;
+  state.sessionKey = params['session_key'];
+  state.accessToken = hParams['access_token'];
   state.sessionSecretKey =
-    params.session_secret_key || hParams.session_secret_key;
-  state.apiServer = args.api_server || params.api_server || OK_API_SERVER;
+    params['session_secret_key'] || hParams['session_secret_key'];
+  state.apiServer = args['api_server'] || params['api_server'] || OK_API_SERVER;
   state.widgetServer = encodeURI(
-    getRemoteUrl([args.widget_server, params.widget_server], OK_CONNECT_URL)
+    getRemoteUrl(
+      [args['widget_server'], params['widget_server']],
+      OK_CONNECT_URL
+    )
   );
   state.mobServer = encodeURI(
-    getRemoteUrl([args.mob_server, params.mob_server], OK_MOB_URL)
+    getRemoteUrl([args['mob_server'], params['mob_server']], OK_MOB_URL)
   );
-  state.baseUrl = state.apiServer + "fb.do";
-  state.header_widget = params.header_widget;
-  state.container = params.container;
+  state.baseUrl = state.apiServer + 'fb.do';
+  state.header_widget = params['header_widget'];
+  state.container = params['container'];
 
   if (!state.app_id || !state.app_key) {
-    sdk_failure("Required arguments app_id/app_key not passed");
+    sdk_failure('Required arguments app_id/app_key not passed');
     return;
   }
 
-  if (!params.api_server) {
-    if (hParams.access_token == null && hParams.error == null) {
+  if (!params['api_server']) {
+    if (hParams['access_token'] == null && hParams['error'] == null) {
       (window as any).location =
         state.widgetServer +
-        "oauth/authorize" +
-        "?client_id=" +
-        args.app_id +
-        "&scope=" +
-        (args.oauth.scope || "VALUABLE_ACCESS") +
-        "&response_type=" +
-        "token" +
-        "&redirect_uri=" +
+        'oauth/authorize' +
+        '?client_id=' +
+        args['app_id'] +
+        '&scope=' +
+        (args.oauth.scope || 'VALUABLE_ACCESS') +
+        '&response_type=' +
+        'token' +
+        '&redirect_uri=' +
         (args.oauth.url || window.location.href) +
-        "&layout=" +
-        (args.oauth.layout || "a") +
-        "&state=" +
-        (args.oauth.state || "");
+        '&layout=' +
+        (args.oauth.layout || 'a') +
+        '&state=' +
+        (args.oauth.state || '');
       return;
     }
-    if (hParams.error != null) {
-      sdk_failure("Error with OAUTH authorization: " + hParams.error);
+    if (hParams['error'] != null) {
+      sdk_failure('Error with OAUTH authorization: ' + hParams['error']);
       return;
     }
   }
   sdk_success();
-};
+}
 
 /**
  * @param {Array} sources
  * @param {String} fallback
  */
-function getRemoteUrl(sources: any, fallback: string) {
-  for (let i = 0; i < sources.length; i++) {
-    const source = sources[i];
+function getRemoteUrl(sources: Array<any>, fallback: string) {
+  for (var i = 0; i < sources.length; i++) {
+    var source = sources[i];
     if (
       source &&
-      (source.startsWith("http://") || source.startsWith("https://"))
-    ) {
+      (source.startsWith('http://') || source.startsWith('https://'))
+    )
       return source;
-    }
   }
   return fallback;
 }
@@ -170,32 +166,31 @@ function getRemoteUrl(sources: any, fallback: string) {
 // REST
 // ---------------------------------------------------------------------------------------------------
 
-const REST_NO_SIGN_ARGS: ReadonlyArray<any> = ["sig", "access_token"];
+const REST_NO_SIGN_ARGS = ['sig', 'access_token'];
 
 const executeRemoteRequest = (query: string, usePost: boolean, callback: (status: string, data: object | null, error: object | null) => void) => {
-  const xhr = new XMLHttpRequest();
+  var xhr = new XMLHttpRequest();
   if (usePost) {
-    xhr.open("POST", state.baseUrl, true);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.open('POST', state.baseUrl, true);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   } else {
-    xhr.open("GET", state.baseUrl + "?" + query, true);
-    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.open('GET', state.baseUrl + '?' + query, true);
+    xhr.setRequestHeader('Content-type', 'application/json');
   }
   xhr.onreadystatechange = function() {
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (!isFunc(callback)) return;
-      let responseJson;
-
+      var responseJson;
       try {
         responseJson = JSON.parse(xhr.responseText);
       } catch (e) {
         responseJson = { result: xhr.responseText };
       }
 
-      if (xhr.status != 200 || responseJson.hasOwnProperty("error_msg")) {
-        callback("error", null, responseJson);
+      if (xhr.status != 200 || responseJson.hasOwnProperty('error_msg')) {
+        callback('error', null, responseJson);
       } else {
-        callback("ok", responseJson, null);
+        callback('ok', responseJson, null);
       }
     }
   };
@@ -214,38 +209,55 @@ const executeRemoteRequest = (query: string, usePost: boolean, callback: (status
  * @param {string} [callOpts.app_secret_key] required for non-session requests
  * @param {string} [callOpts.use_post] send request via POST
  */
-function restCall(method: string, params: any, callback: () => void, callOpts: any) {
-  params = params || {};
-  params.method = method;
-  params = restFillParams(params);
+
+type restParams = {
+  sig: string;
+  method: string;
+  session_key: string;
+  access_token: string;
+  application_key: string;
+  format: string;
+};
+
+type restOpts = {
+  no_sig: boolean;
+  no_session: boolean;
+  app_secret_key: string;
+  use_post: boolean;
+}
+
+function restCall(method: string, params: restParams, callback: () => void, callOpts: restOpts) {
+  let _params: any = params || {};
+  _params.method = method;
+  _params = restFillParams(_params);
   if (callOpts && callOpts.no_session) {
-    delete params.session_key;
-    delete params.access_token;
+    delete _params['session_key'];
+    delete _params['access_token'];
   }
 
-  let key;
+  var key;
   for (key in params) {
     if (params.hasOwnProperty(key)) {
-      const param = params[key];
-      if (typeof param === "object") {
-        params[key] = JSON.stringify(param);
+      var param = _params[key];
+      if (typeof param === 'object') {
+        _params[key] = JSON.stringify(param);
       }
     }
   }
 
   if (!callOpts || !callOpts.no_sig) {
-    const secret =
+    var secret =
       callOpts && callOpts.app_secret_key
         ? callOpts.app_secret_key
         : state.sessionSecretKey;
-    params.sig = calcSignature(params, secret);
+    params['sig'] = calcSignature(params, secret);
   }
 
-  let query = "";
+  var query = '';
   for (key in params) {
     if (params.hasOwnProperty(key)) {
-      if (query.length !== 0) query += "&";
-      query += key + "=" + encodeURIComponent(params[key]);
+      if (query.length !== 0) query += '&';
+      query += key + '=' + encodeURIComponent((params as any)[key]);
     }
   }
 
@@ -259,22 +271,22 @@ function restCall(method: string, params: any, callback: () => void, callOpts: a
  * @param {string} [secretKey] alternative secret_key (fe: app secret key for non-session requests)
  * @returns {string}
  */
-function calcSignatureExternal(query: string, secretKey: string) {
+function calcSignatureExternal(query: restParams, secretKey: string) {
   return calcSignature(restFillParams(query), secretKey);
 }
 
-function calcSignature(query: object | any, secretKey: string) {
-  let i,
-    keys: Array<any> = [];
+function calcSignature(query: object, secretKey: string) {
+  var i,
+    keys = [];
   for (i in query) {
     keys.push(i.toString());
   }
   keys.sort();
-  let sign = "";
+  var sign = '';
   for (i = 0; i < keys.length; i++) {
-    const key = keys[i];
+    var key = keys[i];
     if (REST_NO_SIGN_ARGS.indexOf(key) == -1) {
-      sign += keys[i] + "=" + query[keys[i]];
+      sign += keys[i] + '=' + (query as any)[keys[i]];
     }
   }
   sign += secretKey || state.sessionSecretKey;
@@ -282,15 +294,15 @@ function calcSignature(query: object | any, secretKey: string) {
   return md5(sign);
 }
 
-function restFillParams(params: object | any) {
+function restFillParams(params: restParams) {
   params = params || {};
-  params.application_key = state.app_key;
+  params['application_key'] = state.app_key;
   if (state.sessionKey) {
-    params.session_key = state.sessionKey;
+    params['session_key'] = state.sessionKey;
   } else {
-    params.access_token = state.accessToken;
+    params['access_token'] = state.accessToken;
   }
-  params.format = "JSON";
+  params['format'] = 'JSON';
   return params;
 }
 
@@ -330,25 +342,23 @@ function paymentShowInFrame(
   options: object,
   frameId: string
 ) {
-  const frameElement =
-    "<iframe 'style='position: absolute; left: 0px; top: 0px; background-color: white; z-index: 9999;' src='" +
-    getPaymentQuery(productName, productPrice, productCode, options) +
-    "'; width='100%' height='100%' frameborder='0'></iframe>";
+  var frameElement =
+    `<iframe style="position: absolute; left: 0px; top: 0px; background-color: white; z-index: 9999;" src="${getPaymentQuery(productName, productPrice, productCode, options)} width="100%" height="100%" frameborder="0"></iframe>`;
 
-  let frameContainer = window.document.getElementById(frameId);
+  var frameContainer = window.document.getElementById(frameId);
   if (!frameContainer) {
-    frameContainer = window.document.createElement("div");
+    frameContainer = window.document.createElement('div');
     frameContainer.id = frameId;
     document.body.appendChild(frameContainer);
   }
 
   frameContainer.innerHTML = frameElement;
-  frameContainer.style.display = "block";
-  frameContainer.style.position = "fixed";
-  frameContainer.style.left = "0px";
-  frameContainer.style.top = "0px";
-  frameContainer.style.width = "100%";
-  frameContainer.style.height = "100%";
+  frameContainer.style.display = 'block';
+  frameContainer.style.position = 'fixed';
+  frameContainer.style.left = '0px';
+  frameContainer.style.top = '0px';
+  frameContainer.style.width = '100%';
+  frameContainer.style.height = '100%';
 }
 
 /**
@@ -358,7 +368,7 @@ function paymentShowInFrame(
  */
 function closePaymentFrame(frameId: string) {
   if (window.parent) {
-    let frameContainer;
+    var frameContainer;
     try {
       frameContainer =
         window.document.getElementById(frameId) ||
@@ -368,13 +378,13 @@ function closePaymentFrame(frameId: string) {
     }
 
     if (frameContainer) {
-      frameContainer.innerHTML = "";
-      frameContainer.style.display = "none";
-      frameContainer.style.position = "";
-      frameContainer.style.left = "";
-      frameContainer.style.top = "";
-      frameContainer.style.width = "";
-      frameContainer.style.height = "";
+      frameContainer.innerHTML = '';
+      frameContainer.style.display = 'none';
+      frameContainer.style.position = '';
+      frameContainer.style.left = '';
+      frameContainer.style.top = '';
+      frameContainer.style.width = '';
+      frameContainer.style.height = '';
     }
   }
 }
@@ -382,27 +392,27 @@ function closePaymentFrame(frameId: string) {
 /**
  * Genrates an OK payment service URL for a selected product
  */
-function getPaymentQuery(productName: string, productPrice: number, productCode: number, options: object | any) {
-  const params: any = {};
-  params.name = productName;
-  params.price = productPrice;
-  params.code = productCode;
+function getPaymentQuery(productName: string, productPrice: number, productCode: number, options: object) {
+  const params = {} as any;
+  params['name'] = productName;
+  params['price'] = productPrice;
+  params['code'] = productCode;
 
-  options = options || {};
-  const host = options.mob_pay_url || state.mobServer;
+  const _options: any = options || {};
+  var host = _options['mob_pay_url'] || state.mobServer;
 
-  params.application_key = state.app_key;
+  params['application_key'] = state.app_key;
   if (state.sessionKey) {
-    params.session_key = state.sessionKey;
+    params['session_key'] = state.sessionKey;
   } else {
-    params.access_token = state.accessToken;
+    params['access_token'] = state.accessToken;
   }
-  params.sig = calcSignature(params, state.sessionSecretKey);
+  params['sig'] = calcSignature(params, state.sessionSecretKey);
 
-  let query = host + "api/show_payment?";
-  for (const key in params) {
+  var query = host + 'api/show_payment?';
+  for (var key in params) {
     if (params.hasOwnProperty(key)) {
-      query += key + "=" + encodeURIComponent(params[key]) + "&";
+      query += key + '=' + encodeURIComponent(params[key]) + '&';
     }
   }
 
@@ -416,28 +426,28 @@ function getPaymentQuery(productName: string, productPrice: number, productCode:
 /**
  * Injects an OK Ads Widget to a game's page
  *
- * @param {string}      [frameId]   optional frame element id. If not present "ok-ads-frame" id will be used
+ * @param {string}      [frameId]   optional frame element id. If not present 'ok-ads-frame' id will be used
  * @param {function}    [callbackFunction] callbackFunction used for all ad methods. Takes a single object input parameter
  */
-function injectAdsWidget(frameId: string, callbackFunction: () => void) {
+function injectAdsWidget(frameId: string, callbackFunction: Function) {
   if (ads_state.frame_element) {
     return;
   }
-  const frame = document.createElement("iframe") as any;
-  const framesCount = window.frames.length;
-  frame.id = frameId || "ok-ads-frame";
+  var frame = document.createElement('iframe') as any;
+  var framesCount = window.frames.length;
+  frame.id = frameId || 'ok-ads-frame';
 
   frame.src = getAdsWidgetSrc();
-  for (let prop in ads_widget_style) {
-    (frame as any).style[prop] = ads_widget_style[prop];
+  for (var prop in ads_widget_style) {
+    frame.style[prop] = ads_widget_style[prop];
   }
-  frame.style.display = "none";
+  frame.style.display = 'none';
   document.body.appendChild(frame);
   ads_state.frame_element = frame;
   ads_state.window_frame = (window as any).frames[framesCount];
 
-  const callback = callbackFunction || defaultAdCallback;
-  window.addEventListener("message", callback);
+  var callback: any = callbackFunction || defaultAdCallback;
+  window.addEventListener('message', callback);
 }
 
 /**
@@ -445,12 +455,12 @@ function injectAdsWidget(frameId: string, callbackFunction: () => void) {
  */
 function prepareMidroll() {
   if (!ads_state.window_frame) {
-    console.log("Ads are not initialized. Please initialize them first");
+    console.log('Ads are not initialized. Please initialize them first');
     return;
   }
   ads_state.window_frame.postMessage(
-    JSON.stringify({ method: "prepare", arguments: ["midroll"] }),
-    "*"
+    JSON.stringify({ method: 'prepare', arguments: ['midroll'] }),
+    '*'
   );
 }
 
@@ -459,15 +469,15 @@ function prepareMidroll() {
  */
 function showMidroll() {
   if (!ads_state.window_frame) {
-    console.log("Ads are not initialized. Please initialize them first");
+    console.log('Ads are not initialized. Please initialize them first');
     return;
   }
   if (!ads_state.ready) {
-    console.log("Ad is not ready. Please make sure ad is ready to be shown");
+    console.log('Ad is not ready. Please make sure ad is ready to be shown');
   }
-  ads_state.frame_element.style.display = "";
+  ads_state.frame_element.style.display = '';
   setTimeout(function() {
-    ads_state.window_frame.postMessage(JSON.stringify({ method: "show" }), "*");
+    ads_state.window_frame.postMessage(JSON.stringify({ method: 'show' }), '*');
   }, 10);
 }
 
@@ -488,14 +498,14 @@ function removeAdsWidget() {
  * Generates an URL for OK Ads Widget
  */
 function getAdsWidgetSrc() {
-  const sig = md5("call_id=1" + state.sessionSecretKey).toString();
-  const widgetSrc =
+  var sig = md5('call_id=1' + state.sessionSecretKey).toString();
+  var widgetSrc =
     state.widgetServer +
-    "dk?st.cmd=WidgetVideoAdv&st.app=" +
+    'dk?st.cmd=WidgetVideoAdv&st.app=' +
     state.app_id +
-    "&st.sig=" +
+    '&st.sig=' +
     sig +
-    "&st.call_id=1&st.session_key=" +
+    '&st.call_id=1&st.session_key=' +
     state.sessionKey;
   return widgetSrc;
 }
@@ -503,12 +513,12 @@ function getAdsWidgetSrc() {
 /**
  * Default callback function used for OK Ads Widget
  */
-function defaultAdCallback(message: object | any) {
+function defaultAdCallback(message: any) {
   if (!message.data) {
     return;
   }
 
-  const data = JSON.parse(message.data);
+  var data = JSON.parse(message.data);
 
   if (!data.call || !data.call.method) {
     return;
@@ -519,44 +529,41 @@ function defaultAdCallback(message: object | any) {
   }
 
   switch (data.call.method) {
-    case "init":
-      if (data.result.status === "ok") {
-        console.log("OK Ads initialization complete");
+    case 'init':
+      if (data.result.status === 'ok') {
+        console.log('OK Ads initialization complete');
         ads_state.init = true;
       } else {
-        console.log("OK Ads failed to initialize");
+        console.log('OK Ads failed to initialize');
         ads_state.init = false;
       }
       break;
-    case "prepare":
-      if (data.result.status === "ok") {
-        if (data.result.code === "ready") {
-          console.log("Ad is ready to be shown");
+    case 'prepare':
+      if (data.result.status === 'ok') {
+        if (data.result.code === 'ready') {
+          console.log('Ad is ready to be shown');
           ads_state.ready = true;
         }
       } else {
         console.log(
-          "Ad is not ready to be shown. Status: " +
+          'Ad is not ready to be shown. Status: ' +
             data.result.status +
-            ". Code: " +
+            '. Code: ' +
             data.result.code
         );
         ads_state.ready = false;
       }
       break;
-    case "show":
-      ads_state.frame_element.style.display = "none";
-      if (data.result.status === "ok") {
-        if (data.result.code === "complete") {
-          console.log("Ad is successfully shown");
+    case 'show':
+      ads_state.frame_element.style.display = 'none';
+      if (data.result.status === 'ok') {
+        if (data.result.code === 'complete') {
+          console.log('Ad is successfully shown');
           ads_state.ready = false;
         }
       } else {
         console.log(
-          "An ad can't be shown. Status: " +
-            data.result.status +
-            ". Code: " +
-            data.result.code
+          `An ad can't be shown. Status: ${data.result.status}. Code: ${data.result.code}`
         );
         ads_state.ready = false;
       }
@@ -568,11 +575,11 @@ function defaultAdCallback(message: object | any) {
 // Widgets
 // ---------------------------------------------------------------------------------------------------
 
-const WIDGET_SIGNED_ARGS: ReadonlyArray<any> = [
-  "st.attachment",
-  "st.return",
-  "st.redirect_uri",
-  "st.state"
+var WIDGET_SIGNED_ARGS = [
+  'st.attachment',
+  'st.return',
+  'st.redirect_uri',
+  'st.state'
 ];
 
 /**
@@ -582,15 +589,17 @@ const WIDGET_SIGNED_ARGS: ReadonlyArray<any> = [
  * @param {Object} options options
  * @param {Object} options.attachment mediatopic (feed) to be posted
  */
-function widgetMediatopicPost(returnUrl: string, options: any) {
-  options = options || {};
-  if (!options.attachment) {
-    options = { attachment: options };
+function widgetMediatopicPost(returnUrl: string, options: object) {
+  let _options: any = options || {};
+  if (!_options.attachment) {
+    _options = { attachment: options };
   }
-  options.attachment = btoa(
-    unescape(encodeURIComponent((toString(options.attachment) as string))
-  ));
-  widgetOpen("WidgetMediatopicPost", options, returnUrl);
+
+  _options.attachment = btoa(
+    unescape(encodeURIComponent(toString(_options.attachment)))
+  );
+
+  widgetOpen('WidgetMediatopicPost', _options, returnUrl);
 }
 
 /**
@@ -598,8 +607,8 @@ function widgetMediatopicPost(returnUrl: string, options: any) {
  *
  * @see widgetSuggest widgetSuggest() for more details on arguments
  */
-function widgetInvite(returnUrl: string, options: any) {
-  widgetOpen("WidgetInvite", options, returnUrl);
+function widgetInvite(returnUrl: string, options: object) {
+  widgetOpen('WidgetInvite', options, returnUrl);
 }
 
 /**
@@ -613,40 +622,40 @@ function widgetInvite(returnUrl: string, options: any) {
  * @param {String} [options.state] custom args to be passed to return url
  * @param {String} [options.target] comma-separated friend IDs that should be preselected by default
  */
-function widgetSuggest(returnUrl: string, options: any) {
-  widgetOpen("WidgetSuggest", options, returnUrl);
+function widgetSuggest(returnUrl: string, options: object) {
+  widgetOpen('WidgetSuggest', options, returnUrl);
 }
 
-function widgetOpen(widget: string, args: any, returnUrl: string) {
-  args = args || {};
+function widgetOpen(widget: string, args: object, returnUrl: string) {
+  const _args: any = args || {};
   if (returnUrl !== null) {
-    args.return = returnUrl;
+    _args.return = returnUrl;
   }
 
-  const keys: Array<any> = [];
-  for (const arg in args) {
+  var keys = [];
+  for (var arg in _args) {
     keys.push(arg.toString());
   }
   keys.sort();
 
-  let sigSource = "";
-  let query =
-    state.widgetServer + "dk?st.cmd=" + widget + "&st.app=" + state.app_id;
-  for (let i = 0; i < keys.length; i++) {
-    const key = "st." + keys[i];
-    const val = args[keys[i]];
+  var sigSource = '';
+  var query =
+    state.widgetServer + 'dk?st.cmd=' + widget + '&st.app=' + state.app_id;
+  for (var i = 0; i < keys.length; i++) {
+    var key = 'st.' + keys[i];
+    var val = _args[keys[i]];
     if (WIDGET_SIGNED_ARGS.indexOf(key) != -1) {
-      sigSource += key + "=" + val;
+      sigSource += key + '=' + val;
     }
-    query += "&" + key + "=" + encodeURIComponent(val);
+    query += '&' + key + '=' + encodeURIComponent(val);
   }
   sigSource += state.sessionSecretKey;
-  query += "&st.signature=" + md5(sigSource);
+  query += '&st.signature=' + md5(sigSource);
   if (state.accessToken != null) {
-    query += "&st.access_token=" + state.accessToken;
+    query += '&st.access_token=' + state.accessToken;
   }
   if (state.sessionKey) {
-    query += "&st.session_key=" + state.sessionKey;
+    query += '&st.session_key=' + state.sessionKey;
   }
   window.open(query);
 }
@@ -656,49 +665,225 @@ function widgetOpen(widget: string, args: any, returnUrl: string) {
 // ---------------------------------------------------------------------------------------------------
 
 /**
+ * calculates md5 of a string
+ * @param {String} str
+ * @returns {String}
+ */
+function md5(str: string) {
+  var hex_chr = '0123456789abcdef';
+
+  function rhex(num: number) {
+    var str = '';
+    for (var j = 0; j <= 3; j++) {
+      str +=
+        hex_chr.charAt((num >> (j * 8 + 4)) & 0x0f) +
+        hex_chr.charAt((num >> (j * 8)) & 0x0f);
+    }
+    return str;
+  }
+
+  /*
+   * Convert a string to a sequence of 16-word blocks, stored as an array.
+   * Append padding bits and the length, as described in the MD5 standard.
+   */
+  function str2blks_MD5(str: string) {
+    var nblk = ((str.length + 8) >> 6) + 1;
+    var blks = new Array(nblk * 16);
+    var i = 0;
+    for (i = 0; i < nblk * 16; i++) {
+      blks[i] = 0;
+    }
+    for (i = 0; i < str.length; i++) {
+      blks[i >> 2] |= str.charCodeAt(i) << ((i % 4) * 8);
+    }
+    blks[i >> 2] |= 0x80 << ((i % 4) * 8);
+    blks[nblk * 16 - 2] = str.length * 8;
+    return blks;
+  }
+
+  /*
+   * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+   * to work around bugs in some JS interpreters.
+   */
+  function add(x:number, y:number) {
+    var lsw = (x & 0xffff) + (y & 0xffff);
+    var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+    return (msw << 16) | (lsw & 0xffff);
+  }
+
+  /*
+   * Bitwise rotate a 32-bit number to the left
+   */
+  function rol(num: number, cnt: number) {
+    return (num << cnt) | (num >>> (32 - cnt));
+  }
+
+  /*
+   * These functions implement the basic operation for each round of the
+   * algorithm.
+   */
+  function cmn(q:number , a:number, b:number, x:number, s:number, t:number) {
+    return add(rol(add(add(a, q), add(x, t)), s), b);
+  }
+
+  function ff(a:number, b:number, c:number, d:number, x:number, s:number, t:number) {
+    return cmn((b & c) | (~b & d), a, b, x, s, t);
+  }
+
+  function gg(a:number, b:number, c:number, d:number, x:number, s:number, t:number) {
+    return cmn((b & d) | (c & ~d), a, b, x, s, t);
+  }
+
+  function hh(a:number, b:number, c:number, d:number, x:number, s:number, t:number) {
+    return cmn(b ^ c ^ d, a, b, x, s, t);
+  }
+
+  function ii(a:number, b:number, c:number, d:number, x:number, s:number, t:number) {
+    return cmn(c ^ (b | ~d), a, b, x, s, t);
+  }
+
+  var x = str2blks_MD5(str);
+  var a = 1732584193;
+  var b = -271733879;
+  var c = -1732584194;
+  var d = 271733878;
+
+  for (var i = 0; i < x.length; i += 16) {
+    var olda = a;
+    var oldb = b;
+    var oldc = c;
+    var oldd = d;
+
+    a = ff(a, b, c, d, x[i + 0], 7, -680876936);
+    d = ff(d, a, b, c, x[i + 1], 12, -389564586);
+    c = ff(c, d, a, b, x[i + 2], 17, 606105819);
+    b = ff(b, c, d, a, x[i + 3], 22, -1044525330);
+    a = ff(a, b, c, d, x[i + 4], 7, -176418897);
+    d = ff(d, a, b, c, x[i + 5], 12, 1200080426);
+    c = ff(c, d, a, b, x[i + 6], 17, -1473231341);
+    b = ff(b, c, d, a, x[i + 7], 22, -45705983);
+    a = ff(a, b, c, d, x[i + 8], 7, 1770035416);
+    d = ff(d, a, b, c, x[i + 9], 12, -1958414417);
+    c = ff(c, d, a, b, x[i + 10], 17, -42063);
+    b = ff(b, c, d, a, x[i + 11], 22, -1990404162);
+    a = ff(a, b, c, d, x[i + 12], 7, 1804603682);
+    d = ff(d, a, b, c, x[i + 13], 12, -40341101);
+    c = ff(c, d, a, b, x[i + 14], 17, -1502002290);
+    b = ff(b, c, d, a, x[i + 15], 22, 1236535329);
+
+    a = gg(a, b, c, d, x[i + 1], 5, -165796510);
+    d = gg(d, a, b, c, x[i + 6], 9, -1069501632);
+    c = gg(c, d, a, b, x[i + 11], 14, 643717713);
+    b = gg(b, c, d, a, x[i + 0], 20, -373897302);
+    a = gg(a, b, c, d, x[i + 5], 5, -701558691);
+    d = gg(d, a, b, c, x[i + 10], 9, 38016083);
+    c = gg(c, d, a, b, x[i + 15], 14, -660478335);
+    b = gg(b, c, d, a, x[i + 4], 20, -405537848);
+    a = gg(a, b, c, d, x[i + 9], 5, 568446438);
+    d = gg(d, a, b, c, x[i + 14], 9, -1019803690);
+    c = gg(c, d, a, b, x[i + 3], 14, -187363961);
+    b = gg(b, c, d, a, x[i + 8], 20, 1163531501);
+    a = gg(a, b, c, d, x[i + 13], 5, -1444681467);
+    d = gg(d, a, b, c, x[i + 2], 9, -51403784);
+    c = gg(c, d, a, b, x[i + 7], 14, 1735328473);
+    b = gg(b, c, d, a, x[i + 12], 20, -1926607734);
+
+    a = hh(a, b, c, d, x[i + 5], 4, -378558);
+    d = hh(d, a, b, c, x[i + 8], 11, -2022574463);
+    c = hh(c, d, a, b, x[i + 11], 16, 1839030562);
+    b = hh(b, c, d, a, x[i + 14], 23, -35309556);
+    a = hh(a, b, c, d, x[i + 1], 4, -1530992060);
+    d = hh(d, a, b, c, x[i + 4], 11, 1272893353);
+    c = hh(c, d, a, b, x[i + 7], 16, -155497632);
+    b = hh(b, c, d, a, x[i + 10], 23, -1094730640);
+    a = hh(a, b, c, d, x[i + 13], 4, 681279174);
+    d = hh(d, a, b, c, x[i + 0], 11, -358537222);
+    c = hh(c, d, a, b, x[i + 3], 16, -722521979);
+    b = hh(b, c, d, a, x[i + 6], 23, 76029189);
+    a = hh(a, b, c, d, x[i + 9], 4, -640364487);
+    d = hh(d, a, b, c, x[i + 12], 11, -421815835);
+    c = hh(c, d, a, b, x[i + 15], 16, 530742520);
+    b = hh(b, c, d, a, x[i + 2], 23, -995338651);
+
+    a = ii(a, b, c, d, x[i + 0], 6, -198630844);
+    d = ii(d, a, b, c, x[i + 7], 10, 1126891415);
+    c = ii(c, d, a, b, x[i + 14], 15, -1416354905);
+    b = ii(b, c, d, a, x[i + 5], 21, -57434055);
+    a = ii(a, b, c, d, x[i + 12], 6, 1700485571);
+    d = ii(d, a, b, c, x[i + 3], 10, -1894986606);
+    c = ii(c, d, a, b, x[i + 10], 15, -1051523);
+    b = ii(b, c, d, a, x[i + 1], 21, -2054922799);
+    a = ii(a, b, c, d, x[i + 8], 6, 1873313359);
+    d = ii(d, a, b, c, x[i + 15], 10, -30611744);
+    c = ii(c, d, a, b, x[i + 6], 15, -1560198380);
+    b = ii(b, c, d, a, x[i + 13], 21, 1309151649);
+    a = ii(a, b, c, d, x[i + 4], 6, -145523070);
+    d = ii(d, a, b, c, x[i + 11], 10, -1120210379);
+    c = ii(c, d, a, b, x[i + 2], 15, 718787259);
+    b = ii(b, c, d, a, x[i + 9], 21, -343485551);
+
+    a = add(a, olda);
+    b = add(b, oldb);
+    c = add(c, oldc);
+    d = add(d, oldd);
+  }
+  return rhex(a) + rhex(b) + rhex(c) + rhex(d);
+}
+
+const isFunc = (obj: object) => Object.prototype.toString.call(obj) === '[object Function]';
+
+const isString = (obj: object) => Object.prototype.toString.call(obj) === '[object String]';
+
+const toString = (obj: any) => isString(obj) ? obj : JSON.stringify(obj);
+
+/**
  * Parses parameters to a JS map<br/>
  * Supports both window.location.search and window.location.hash)
  * @param {String} [source=window.location.search] string to parse
  * @returns {Object}
  */
 function getRequestParameters(source: string) {
-  let res: any = {};
-  let url = source || window.location.search;
-
+  var res = {} as any;
+  var url = source || window.location.search;
   if (url) {
     url = url.substr(1); // Drop the leading '?' / '#'
-    const nameValues = url.split("&");
+    var nameValues = url.split('&');
 
-    for (let i = 0; i < nameValues.length; i += 1) {
-      const nameValue = nameValues[i].split("=");
-      const name = nameValue[0];
-      let value = nameValue[1];
-
-      value = decodeURIComponent(value.replace(/\+/g, " "));
+    for (var i = 0; i < nameValues.length; i++) {
+      var nameValue = nameValues[i].split('=');
+      var name = nameValue[0];
+      var value = nameValue[1];
+      value = decodeURIComponent(value.replace(/\+/g, ' '));
       res[name] = value;
     }
   }
   return res;
 }
 
-const encodeUtf8 = (str: string = "") => unescape(encodeURIComponent(str));
+function encodeUtf8(string: string) {
+  return unescape(encodeURIComponent(string));
+}
 
-const decodeUtf8 = (utftext: string = "") =>
-  decodeURIComponent(escape(utftext));
+function decodeUtf8(utftext: string) {
+  return decodeURIComponent(escape(utftext));
+}
 
 /**
  * Checks if a game was opened in OK Android app's WebView
  * Checks if a game is opened in an OK Android app's WebView
  */
-const isLaunchedInOKAndroidWebView = ((window: Window) => {
-  const userAgent = window.navigator.userAgent;
+function isLaunchedInOKAndroidWebView() {
+  var userAgent = window.navigator.userAgent;
 
   return (
     userAgent &&
     userAgent.length >= 0 &&
     userAgent.indexOf(OK_ANDROID_APP_UA) > -1
   );
-}).bind(null, window);
+}
+
+/** stub func */
+const nop = () => {};
 
 /**
  * @callback onSuccessCallback
@@ -713,41 +898,46 @@ const isLaunchedInOKAndroidWebView = ((window: Window) => {
  */
 
 // ---------------------------------------------------------------------------------------------------
+const OKSDK = {
+  init,
 
-export const REST = {
-  call: restCall,
-  calcSignature: calcSignatureExternal
+  REST: {
+    call: restCall,
+    calcSignature: calcSignatureExternal
+  },
+
+  Payment: {
+    closePaymentFrame,
+    show: paymentShow,
+    showInFrame: paymentShowInFrame,
+    query: getPaymentQuery
+  },
+
+  Widgets: {
+    getBackButtonHtml: nop,
+    post: widgetMediatopicPost,
+    invite: widgetInvite,
+    suggest: widgetSuggest
+  },
+
+  Ads: {
+    prepareMidroll,
+    showMidroll,
+    init: injectAdsWidget,
+    destroy: removeAdsWidget,
+    State: ads_state
+  },
+
+  Util: {
+    md5,
+    toString,
+    encodeUtf8,
+    decodeUtf8,
+    getRequestParameters,
+    encodeBase64: btoa,
+    decodeBase64: atob,
+    isLaunchedFromOKApp: isLaunchedInOKAndroidWebView
+  }
 };
 
-export const Payment = {
-  show: paymentShow,
-  showInFrame: paymentShowInFrame,
-  query: getPaymentQuery,
-  closePaymentFrame
-};
-
-export const Widgets = {
-  getBackButtonHtml: nop,
-  post: widgetMediatopicPost,
-  invite: widgetInvite,
-  suggest: widgetSuggest
-};
-
-export const Ads = {
-  init: injectAdsWidget,
-  prepareMidroll,
-  showMidroll,
-  destroy: removeAdsWidget,
-  State: ads_state
-};
-
-export const Util = {
-  md5,
-  encodeUtf8,
-  decodeUtf8,
-  encodeBase64: btoa,
-  decodeBase64: atob,
-  getRequestParameters,
-  toString,
-  isLaunchedFromOKApp: isLaunchedInOKAndroidWebView
-};
+export default OKSDK;
